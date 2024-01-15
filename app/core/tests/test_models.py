@@ -67,6 +67,7 @@ class ModelTests(TestCase):
             'test@example.com',
             'testpass123',
         )
+
         recipe = models.Recipe.objects.create(
             user=user,
             title='Sample recipe name',
@@ -75,7 +76,7 @@ class ModelTests(TestCase):
             description='Sample recipe description.',
         )
 
-        self.assertEqual(str(recipe), recipe.title)\
+        self.assertEqual(str(recipe), recipe.title)
 
     def test_create_tag(self):
         """Test creating a tag is successful."""
