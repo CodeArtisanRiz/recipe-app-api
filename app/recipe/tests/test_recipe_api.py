@@ -334,3 +334,48 @@ class PrivateRecipeApiTests(TestCase):
                 user=self.user
             ).exists()
             self.assertTrue(exists)
+
+    def test_create_ingredient_on_update(self):
+        """Test creating a new ingredient on updating a recipe."""
+        recipe = create_recipe(user=self.user)
+
+        payload = {'ingredients': [{'name': 'flour'}]}
+        url = detail_url(recipe.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        new_ingredient = Ingredient.objects.get(user=self.user, name='flour')
+        self.assertIn(new_ingredient, recipe.ingredients.all())
+
+    def test_update_recipe_assign_ingredients(self):
+        """
+        Test updating an existing ingredient when updating a recipe.
+        """""
+        ingredient_breakfast = Ingredient.objects.create(
+            user=self.user, name='Breakfast'
+        )
+        recipe = create_recipe(user=self.user)
+        recipe.ingredients.add(ingredient_breakfast)
+
+        ingredient_lunch = Ingredient.objects.create(
+            user=self.user, name='Lunch')
+        payload = {'ingredients': [{'name': 'Lunch'}]}
+        url = detail_url(recipe.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn(ingredient_lunch, recipe.ingredients.all())
+        self.assertNotIn(ingredient_breakfast, recipe.ingredients.all())
+
+    def test_clear_recipe_ingredients(self):
+        """Test clearing recipe ingredients."""
+        ingredient = Ingredient.objects.create(user=self.user, name='Desert')
+        recipe = create_recipe(user=self.user)
+        recipe.ingredients.add(ingredient)
+
+        payload = {'ingredients': []}
+        url = detail_url(recipe.id)
+        res = self.client.patch(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(recipe.ingredients.count(), 0)
